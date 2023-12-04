@@ -1,0 +1,128 @@
+import random
+
+def simulate_pitch():
+    # Simulate a pitch: 60% chance of a strike, 30% chance of a ball, 10% chance of a hit
+    outcome = random.choices(['strike', 'ball', 'hit'], weights=[0.6, 0.3, 0.1])[0]
+    return outcome
+
+def simulate_hit():
+    # Simulate a hit outcome: 60% chance of a single, 20% chance of a double, 10% chance of a triple, 10% chance of a home run
+    return random.choices(['single', 'double', 'triple', 'home_run'], weights=[0.6, 0.2, 0.1, 0.1])[0]
+
+def simulate_inning():
+    strikes = 0
+    balls = 0
+    outs = 0
+    runners = 0  # 0 for no runners, 1 for runner on first, 2 for runner on second, 3 for runner on third
+
+    while outs < 3:
+        pitch_result = simulate_pitch()
+
+        if pitch_result == 'strike':
+            strikes += 1
+            print("Strike!")
+        elif pitch_result == 'ball':
+            balls += 1
+            print("Ball!")
+        elif pitch_result == 'hit':
+            hit_outcome = simulate_hit()
+            handle_hit_outcome(hit_outcome, runners)
+            runners = update_runners_on_hit(hit_outcome, runners)
+
+        if strikes == 3:
+            print("Three strikes! Batter is out!")
+            outs += 1
+            strikes = 0
+            balls = 0
+            if runners > 0:
+                runners -= 1  # Runner advances to the next base on a strikeout
+
+        if balls == 4:
+            print("Four balls! Batter walks!")
+            if runners < 3:
+                runners += 1  # Runner advances to the next base on a walk
+            else:
+                print("Bases loaded! A walk brings in a run.")
+                runners = 1  # Reset to runner on first
+
+        print_runners_position(runners)
+
+    return runners  # Return the number of runners who scored in this inning
+
+def handle_hit_outcome(hit_outcome, runners):
+    if hit_outcome == 'home_run':
+        print("Home Run! All runners score!")
+    else:
+        print(f"{hit_outcome.capitalize()}!")
+
+def update_runners_on_hit(hit_outcome, runners):
+    if hit_outcome == 'single':
+        if runners == 3:
+            print("Runners on first and third score!")
+            return 0  # Runners on first and third score
+        elif runners == 2:
+            print("Runner on second advances to third!")
+            return 3  # Runner on second advances to third
+        elif runners == 1:
+            print("Runner on first advances to second!")
+            return 2  # Runner on first advances to second
+        else:
+            return 1  # Runner on first
+    elif hit_outcome == 'double':
+        if runners >= 2:
+            print("Runners on second and third score!")
+            return 0  # Runners on second and third score
+        elif runners == 1:
+            print("Runner on first advances to third!")
+            return 3  # Runner on first advances to third
+        else:
+            return 2  # Runner on second
+    elif hit_outcome == 'triple':
+        if runners >= 1:
+            print("Runners on first, second, and third score!")
+            return 0  # Runners on first, second, and third score
+        else:
+            return 3  # Runner on third
+    elif hit_outcome == 'home_run':
+        return 0  # No runners, everyone scores
+
+def print_runners_position(runners):
+    if runners == 0:
+        print("Bases empty")
+    else:
+        positions = []
+        if runners & 1:
+            positions.append("first")
+        if runners & 2:
+            positions.append("second")
+        if runners & 4:
+            positions.append("third")
+        print(f"Runners on base: {', '.join(positions)}")
+
+def play_game():
+    home_team_wins = 0
+    away_team_wins = 0
+
+    num_games = int(input("Enter the number of games in the season: "))
+
+    for game in range(1, num_games + 1):
+        print(f"\n--- Game {game} ---")
+
+        # Home team bats
+        home_runs = simulate_inning()
+
+        # Away team bats
+        away_runs = simulate_inning()
+
+        print(f"End of Game {game} - Home: {home_runs}, Away: {away_runs}")
+
+        if home_runs > away_runs:
+            home_team_wins += 1
+        elif away_runs > home_runs:
+            away_team_wins += 1
+
+    print("\n--- Season Over ---")
+    print(f"Home Team Wins: {home_team_wins}, Away Team Wins: {away_team_wins}")
+
+if __name__ == "__main__":
+    play_game()
